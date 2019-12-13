@@ -1,3 +1,4 @@
+/*
 //
 //  main.c
 //  uva_11476_factorizing_larget_integers
@@ -5,7 +6,13 @@
 //  Created by ernesto alvarado on 12/12/19.
 //  Copyright © 2019 ernesto alvarado. All rights reserved.
 //
+ */
 
+/* XXX: https://onlinejudge.org/index.php?option=com_onlinejudge&Itemid=8&page=show_problem&problem=2471 */
+// XXX: http://morris821028.github.io/2015/07/11/uva-11476/
+// XXX: https://codeforces.com/blog/entry/47499?
+// XXX: https://www.cs.colorado.edu/~srirams/courses/csci2824-spr14/pollardsRho.html
+// XXX: https://www.geeksforgeeks.org/pollards-rho-algorithm-prime-factorization/
 #if 1 /* COMUN */
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -679,13 +686,12 @@ primalidad_exp_mod (entero_largo_sin_signo a, entero_largo_sin_signo p,
     return acum_res;
 }
 
-// XXX: https://stackoverflow.com/questions/2509679/how-to-generate-a-random-integer-number-from-within-a-range
+/* XXX: https://stackoverflow.com/questions/2509679/how-to-generate-a-random-integer-number-from-within-a-range */
 COMUN_FUNC_STATICA entero_largo_sin_signo
 primalidad_rand (entero_largo_sin_signo max)
 {
     entero_largo_sin_signo x = (((entero_largo_sin_signo) rand ()) << 32)
     | rand ();
-    //        comun_log_debug("num rand %llu - defec %llu = %llu y x %llu", num_rand, defect, num_rand-defect, x);
     return x % max;
 }
 
@@ -693,7 +699,6 @@ COMUN_FUNC_STATICA entero_largo_sin_signo
 primalidad_rand_intervalo (entero_largo_sin_signo min,
                            entero_largo_sin_signo max)
 {
-    //    comun_log_debug("rand intervalo min %llu max %llu", min, max);
     return (entero_largo_sin_signo) min + primalidad_rand (max - min);
 }
 
@@ -947,27 +952,45 @@ primos_criba_criba (natural limite,
 
 
 #if 1 /* POLLARD_RHO */
-COMUN_FUNC_STATICA entero_largo_sin_signo pollard_rho_pseudo_rand(entero_largo_sin_signo x, entero_largo_sin_signo mod){
-    return primalidad_exp_mod(x, 2, mod);
+COMUN_FUNC_STATICA entero_largo_sin_signo pollard_rho_pseudo_rand(entero_largo_sin_signo x, entero_largo_sin_signo c,entero_largo_sin_signo mod){
+/*    entero_largo_sin_signo r = primalidad_exp_mod(x, 2, mod)+c;*/
+    entero_largo_sin_signo r = primalidad_mul_mod(x, x, mod)+c;
+    if(r>=mod){
+        r-=mod;
+    }
+    return r;
 }
 
 COMUN_FUNC_STATICA entero_largo_sin_signo pollard_rho_core(entero_largo_sin_signo n, natural intentos){
-    entero_largo_sin_signo sqr = sqrt(n);
+/*    entero_largo_sin_signo sqr = sqrt(n);
     entero_largo_sin_signo a=(rand()%((sqr<<1)-2))+2;
-//    entero_largo_sin_signo a=2;
+ */
+    entero_largo_sin_signo a=2;
     entero_largo_sin_signo b=a;
+    entero_largo_sin_signo c=2;
     entero_largo_sin_signo d=1;
+    entero_largo_sin_signo k=2;
     natural i=0;
+    natural j=0;
     while(i<intentos){
-    do{
-        a=pollard_rho_pseudo_rand(a, n);
-        b=pollard_rho_pseudo_rand(pollard_rho_pseudo_rand(b, n), n);
-        d=comun_mcd(comun_max(a, b)-comun_min(a, b), n);
-    }while(d==1);
-        i++;
-        if(a!=b){
+        j=0;
+        k=2;
+        while (verdadero) {
+            a=pollard_rho_pseudo_rand(a,c+i, n);
+            entero_largo_sin_signo a_b=a>b?a-b:b-a;
+            d=comun_mcd(a_b, n);
+            if(d>1){
+                break;
+            }
+            if(++j==k){
+                k<<=1;
+                b=a;
+            }
+        }
+        if(d!=n){
             return d;
         }
+        i++;
     }
     return COMUN_VALOR_INVALIDO;
 }
@@ -984,6 +1007,25 @@ COMUN_FUNC_STATICA entero_largo_sin_signo pollard_rho_core(entero_largo_sin_sign
  }
  return n;
  }
+ 
+ void llfactorize(long long n, vector<long long> &f) {
+ if (n == 1)
+ return ;
+ if (n < 1e+9) {
+ factorize(n, f);
+ return ;
+ }
+ if (isPrime(n)) {
+ f.push_back(n);
+ return ;
+ }
+ long long d = n;
+ for (int i = 2; d == n; i++)
+ d = pollard_rho(n, i);
+ llfactorize(d, f);
+ llfactorize(n/d, f);
+ }
+ 
  */
 
 #endif /* POLLARD_RHO */
@@ -1017,13 +1059,25 @@ COMUN_FUNC_STATICA void uva_11476_core(entero_largo_sin_signo n,primos_datos *pd
             factores_primos_potencias[factores_primos_cnt++]=1;
         }
         else{
-            entero_largo_sin_signo primo=pollard_rho_core(n, 10);
-            entero_largo_sin_signo primo_comp=n/primo;
-            
-            factores_primos[factores_primos_cnt]=primo;
-            factores_primos_potencias[factores_primos_cnt++]=1;
-            factores_primos[factores_primos_cnt]=primo_comp;
-            factores_primos_potencias[factores_primos_cnt++]=1;
+            entero_largo_sin_signo raiz=0;
+            if(primalidad_es_cuadratico(n, &raiz)){
+                factores_primos[factores_primos_cnt]=raiz;
+                factores_primos_potencias[factores_primos_cnt++]=2;
+            }
+            else{
+                entero_largo_sin_signo primo=pollard_rho_core(n, 10);
+                entero_largo_sin_signo primo_comp=n/primo;
+                if(primo>primo_comp){
+                    entero_largo_sin_signo tmp=primo;
+                    primo=primo_comp;
+                    primo_comp=tmp;
+                }
+                
+                factores_primos[factores_primos_cnt]=primo;
+                factores_primos_potencias[factores_primos_cnt++]=1;
+                factores_primos[factores_primos_cnt]=primo_comp;
+                factores_primos_potencias[factores_primos_cnt++]=1;
+            }
         }
     }
     

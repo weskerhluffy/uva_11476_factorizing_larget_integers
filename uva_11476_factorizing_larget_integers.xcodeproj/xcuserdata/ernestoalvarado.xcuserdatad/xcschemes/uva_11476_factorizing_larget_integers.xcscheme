@@ -64,7 +64,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "STDIN"
-            value = "/Users/ernestoalvarado/eworkspace/uva_11476_factorizing_larget_integers/uva_11476_factorizing_larget_integers/in01.txt"
+            value = "/Users/ernestoalvarado/eworkspace/uva_11476_factorizing_larget_integers/uva_11476_factorizing_larget_integers/in03a.txt"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
